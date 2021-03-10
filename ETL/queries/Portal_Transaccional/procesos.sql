@@ -8,6 +8,19 @@ SELECT
         pr.Name PR_CARATULA,
         pr.Description PR_DESCRIPCION,
         pr.ProcedureProfileLabel PR_MODALIDAD,
+        CASE 
+            WHEN pr.Reference LIKE '%-PEUR-%' THEN 'urgencia'
+            WHEN pr.Reference LIKE '%-PEEN-%' THEN 'emergencia'
+            WHEN pr.Reference LIKE '%-PESN-%' THEN 'seguridad nacional'
+            WHEN pr.Reference LIKE '%-PEOR-%' THEN 'obras cientificas, tecnicas,artisticas,restauracion de monumentos'
+            WHEN pr.Reference LIKE '%-PEEX-%' THEN 'exclusividad'
+            WHEN pr.Reference LIKE '%-PEPU-%' THEN 'proveedor unico'
+            WHEN pr.Reference LIKE '%-PECO-%' THEN 'construccion de oficinas para el servicio exterior'
+            WHEN pr.Reference LIKE '%-PERC-%' THEN 'recision de contratos'
+            WHEN pr.Reference LIKE '%-PEPB-%' THEN 'publicidad'
+            WHEN pr.Reference LIKE '%-PE15-%' THEN 'pasajes aereos, reparaciones y combustibles'
+            ELSE 'proceso ordinario'
+        END TIPO_EXCEPCION,
         CASE          
             WHEN pr.[State] = 'Awarded' then 'Adjudicado'  
             WHEN pr.[State] = 'Canceled' then 'Cancelado'     
@@ -35,11 +48,34 @@ SELECT
         rd.FechaEstimadaAdjudicacion RD_FECHA_ESTIMADA_ADJUDICACION,
         rd.FechaEnmiendas RD_FECHA_ENMIENDA,
         rd.FechaSuscripcion RD_FECHA_SUSCRIPCION,
-        pr.LimitRepliesToSmallCompanies PR_DIRIGIDO_MIPYMES, 
-        pr.LimitRepliesToSmallFemaleCompanies PR_DIRIGIDO_MIPYMES_MUJERES, 
-        pr.DefineLots PR_PROCESO_LOTIFICADO,
-        cn.TypeOfContractCode CN_OBJETO_PROCESO, 
-        cn.SubTypeOfContractCode CN_SUBOJETO_PROCESO, 
+        CASE 
+            WHEN pr.LimitRepliesToSmallCompanies = 0 THEN 'No'
+            WHEN pr.LimitRepliesToSmallCompanies = 1 THEN 'Si'
+            ELSE 'No especificado'
+        END PR_DIRIGIDO_MIPYMES, 
+        CASE 
+            WHEN pr.LimitRepliesToSmallFemaleCompanies = 0 THEN 'No'
+            WHEN pr.LimitRepliesToSmallFemaleCompanies = 1 THEN 'Si'
+            ELSE 'No especificado'
+        END PR_DIRIGIDO_MIPYMES_MUJERES, 
+        CASE 
+            WHEN pr.DefineLots = 0 THEN 'No'
+            WHEN pr.DefineLots = 1 THEN 'Si'
+            ELSE 'No especificado'
+        END PR_PROCESO_LOTIFICADO, 
+        CASE 
+            WHEN cn.TypeOfContractCode = 'GoodsDominicana' THEN 'Bienes'
+            WHEN cn.TypeOfContractCode = 'ServicesDominicana' THEN 'Servicios'
+            WHEN cn.TypeOfContractCode = 'ConstructionDominicana' THEN 'Obras'
+            WHEN cn.TypeOfContractCode = 'ConcessionDominicana' THEN 'Concesiones'
+            ELSE cn.TypeOfContractCode
+        END CN_OBJETO_PROCESO, 
+        CASE 
+            WHEN cn.SubTypeOfContractCode = 'ChildServicesDominicana' THEN 'Servicios'
+            WHEN cn.SubTypeOfContractCode = 'ConsultingDominicana' THEN 'Consultorías'
+            WHEN cn.SubTypeOfContractCode = 'ConsultingQualityDominicana' THEN 'Consultoría basada en la calidad de los servicios'
+            ELSE cn.TypeOfContractCode
+        END CN_SUBOJETO_PROCESO,
         cn.ContractDuration CN_DURACION_CONTRATO, 
         cn.NumberInvitedCompanies CN_NUMERO_PROVEEDORES_NOTIFICADOS,
         CASE
