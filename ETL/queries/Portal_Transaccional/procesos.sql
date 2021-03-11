@@ -7,7 +7,29 @@ SELECT
         pr.Reference PR_CODIGO_PROCESO, 
         pr.Name PR_CARATULA,
         pr.Description PR_DESCRIPCION,
-        pr.ProcedureProfileLabel PR_MODALIDAD,
+        CASE 
+            WHEN pr.Reference LIKE '%-CD-%' THEN 'Compras por Debajo del Umbral'
+            WHEN pr.Reference LIKE '%-CM-%' THEN 'Compras Menores'
+            WHEN pr.Reference LIKE '%-LPN-%' THEN 'Licitación Pública Nacional'
+            WHEN pr.Reference LIKE '%-CP-%' THEN 'Comparación de Precios'
+            WHEN pr.Reference LIKE '%-SO-%' THEN 'Sorteo de Obras'
+            WHEN pr.Reference LIKE '%-LPI-%' THEN 'Licitación Pública Internacional'
+            WHEN pr.Reference LIKE '%-LR-%' THEN 'Licitación Restringida'
+            WHEN pr.Reference LIKE '%-SI-%' THEN 'Subasta Inversa'
+            
+            WHEN pr.Reference LIKE '%-PEUR-%' THEN 'Procesos de Excepción'
+            WHEN pr.Reference LIKE '%-PEEN-%' THEN 'Procesos de Excepción'
+            WHEN pr.Reference LIKE '%-PEOR-%' THEN 'Procesos de Excepción'
+            WHEN pr.Reference LIKE '%-PEEX-%' THEN 'Procesos de Excepción'
+            WHEN pr.Reference LIKE '%-PEPU-%' THEN 'Procesos de Excepción'
+            WHEN pr.Reference LIKE '%-PECO-%' THEN 'Procesos de Excepción'
+            WHEN pr.Reference LIKE '%-PERC-%' THEN 'Procesos de Excepción'
+            WHEN pr.Reference LIKE '%-PEPB-%' THEN 'Procesos de Excepción'
+            WHEN pr.Reference LIKE '%-PE15-%' THEN 'Procesos de Excepción'
+
+            WHEN pr.Reference LIKE '%-PESN-%' THEN 'Procesos de Excepción Seguridad Nacional'
+            ELSE 'No definido'
+        END PR_MODALIDAD,
         CASE 
             WHEN pr.Reference LIKE '%-PEUR-%' THEN 'urgencia'
             WHEN pr.Reference LIKE '%-PEEN-%' THEN 'emergencia'
@@ -22,14 +44,14 @@ SELECT
             ELSE 'proceso ordinario'
         END TIPO_EXCEPCION,
         CASE          
-            WHEN pr.[State] = 'Awarded' then 'Adjudicado'  
+            WHEN pr.[State] = 'Awarded' then 'Proceso adjudicado y celebrado'  
             WHEN pr.[State] = 'Canceled' AND cn.UniqueIdentifier IS NOT NULL THEN 'Cancelado'     
             --WHEN pr.[State] = 'Closed' then 'Cerrada la recepción de ofertas'       
-            WHEN pr.[State] = 'ClosedForReplies' then 'Cerrada la recepción de ofertas'   
+            WHEN pr.[State] = 'ClosedForReplies' then 'Proceso con etapa cerrada'   
             --WHEN pr.[State] = 'InEdition' then 'En edición'         
-            WHEN pr.[State] = 'NonAwarded' then 'Desierto'         
+            WHEN pr.[State] = 'NonAwarded' then 'Proceso desierto'         
             WHEN pr.[State] = 'Opened' then 'Sobres abiertos ó aperturados'     
-            WHEN pr.[State] = 'Published' then 'Publicado'         
+            WHEN pr.[State] = 'Published' then 'Proceso publicado'         
             WHEN pr.[State] = 'RepliesOpenningStarted' then 'Sobres están abriéndose'  
             --WHEN pr.[State] = 'UnderApproval' then 'En aprobación'         
             --WHEN pr.[State] = 'WaitingForPublicationDate' then 'Esperando publicación'    
@@ -43,25 +65,28 @@ SELECT
         c.Name C_UNIDAD_COMPRA,
         DATEADD(HOUR, -4, pr.CreateDate) PR_FECHA_CREACION,
         rd.FechaPublicacion RD_FECHA_PUBLICACION,
+        rd.FechaEnmiendas RD_FECHA_ENMIENDA,
         rd.FechaFinRecepcionOfertas RD_FECHA_FIN_RECEPCION_OFERTAS,
         rd.FechaAperturaOfertas RD_FECHA_APERTURA_OFERTAS,
         rd.FechaEstimadaAdjudicacion RD_FECHA_ESTIMADA_ADJUDICACION,
-        rd.FechaEnmiendas RD_FECHA_ENMIENDA,
         rd.FechaSuscripcion RD_FECHA_SUSCRIPCION,
         CASE 
             WHEN pr.LimitRepliesToSmallCompanies = 0 THEN 'No'
             WHEN pr.LimitRepliesToSmallCompanies = 1 THEN 'Si'
-            ELSE 'No especificado'
+            WHEN pr.LimitRepliesToSmallCompanies IS NULL THEN 'No especificado'
+            ELSE CAST(pr.LimitRepliesToSmallCompanies AS VARCHAR)
         END PR_DIRIGIDO_MIPYMES, 
         CASE 
             WHEN pr.LimitRepliesToSmallFemaleCompanies = 0 THEN 'No'
             WHEN pr.LimitRepliesToSmallFemaleCompanies = 1 THEN 'Si'
-            ELSE 'No especificado'
+            WHEN pr.LimitRepliesToSmallFemaleCompanies IS NULL THEN 'No especificado'
+            ELSE CAST(pr.LimitRepliesToSmallFemaleCompanies AS VARCHAR)  
         END PR_DIRIGIDO_MIPYMES_MUJERES, 
         CASE 
             WHEN pr.DefineLots = 0 THEN 'No'
             WHEN pr.DefineLots = 1 THEN 'Si'
-            ELSE 'No especificado'
+            WHEN pr.DefineLots IS NULL THEN 'No especificado'
+            ELSE CAST(pr.DefineLots AS VARCHAR)  
         END PR_PROCESO_LOTIFICADO, 
         CASE 
             WHEN cn.TypeOfContractCode = 'GoodsDominicana' THEN 'Bienes'
@@ -70,12 +95,15 @@ SELECT
             WHEN cn.TypeOfContractCode = 'ConcessionDominicana' THEN 'Concesiones'
             ELSE cn.TypeOfContractCode
         END CN_OBJETO_PROCESO, 
-        CASE 
+        CASE
+            WHEN cn.SubTypeOfContractCode = 'GoodsDominicana' THEN 'Bienes' 
+            WHEN cn.SubTypeOfContractCode = 'ConstructionDominicana' THEN 'Obras'
+            WHEN cn.SubTypeOfContractCode = 'ConcessionDominicana' THEN 'Concesiones'
             WHEN cn.SubTypeOfContractCode = 'ChildServicesDominicana' THEN 'Servicios'
             WHEN cn.SubTypeOfContractCode = 'ConsultingDominicana' THEN 'Consultorías'
             WHEN cn.SubTypeOfContractCode = 'ConsultingQualityDominicana' THEN 'Consultoría basada en la calidad de los servicios'
             ELSE cn.TypeOfContractCode
-        END CN_SUBOJETO_PROCESO,
+        END CN_SUBOBJETO_PROCESO,
         cn.ContractDuration CN_DURACION_CONTRATO, 
         cn.NumberInvitedCompanies CN_NUMERO_PROVEEDORES_NOTIFICADOS,
         CASE
