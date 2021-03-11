@@ -46,15 +46,15 @@ SELECT
         CASE          
             WHEN pr.[State] = 'Awarded' then 'Proceso adjudicado y celebrado'  
             WHEN pr.[State] = 'Canceled' AND cn.UniqueIdentifier IS NOT NULL THEN 'Cancelado'     
-            --WHEN pr.[State] = 'Closed' then 'Cerrada la recepción de ofertas'       
+            WHEN pr.[State] = 'Closed' then 'Aun no publicado'       
             WHEN pr.[State] = 'ClosedForReplies' then 'Proceso con etapa cerrada'   
-            --WHEN pr.[State] = 'InEdition' then 'En edición'         
+            WHEN pr.[State] = 'InEdition' then 'Aun no publicado'         
             WHEN pr.[State] = 'NonAwarded' then 'Proceso desierto'         
             WHEN pr.[State] = 'Opened' then 'Sobres abiertos ó aperturados'     
             WHEN pr.[State] = 'Published' then 'Proceso publicado'         
             WHEN pr.[State] = 'RepliesOpenningStarted' then 'Sobres están abriéndose'  
-            --WHEN pr.[State] = 'UnderApproval' then 'En aprobación'         
-            --WHEN pr.[State] = 'WaitingForPublicationDate' then 'Esperando publicación'    
+            WHEN pr.[State] = 'UnderApproval' then 'Aun no publicado'         
+            WHEN pr.[State] = 'WaitingForPublicationDate' then 'Aun no publicado'    
             ELSE pr.[State]         
         end PR_ESTADO_PROCESO,
         cn.PhaseName CN_FASE_PROCESO, 
