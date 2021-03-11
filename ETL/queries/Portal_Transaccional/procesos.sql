@@ -54,7 +54,10 @@ SELECT
             WHEN pr.[State] = 'Published' then 'Proceso publicado'         
             WHEN pr.[State] = 'RepliesOpenningStarted' then 'Sobres están abriéndose'  
             WHEN pr.[State] = 'UnderApproval' then 'Aun no publicado'         
-            WHEN pr.[State] = 'WaitingForPublicationDate' then 'Aun no publicado'    
+            WHEN pr.[State] = 'WaitingForPublicationDate' then 'Aun no publicado'
+            WHEN pr.[State] = 'Rejected' then 'Aun no publicado'
+            WHEN pr.[State] = 'Approved' then 'Aun no publicado'
+            WHEN pr.[State] = 'Canceled' then 'Aun no publicado'
             ELSE pr.[State]         
         end PR_ESTADO_PROCESO,
         cn.PhaseName CN_FASE_PROCESO, 
