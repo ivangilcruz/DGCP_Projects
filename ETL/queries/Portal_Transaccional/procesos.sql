@@ -41,7 +41,7 @@ SELECT
         pr.CreateCompanyCode PR_ID_UNIDAD_COMPRA, 
         c.ExternalId C_CODIGO_UNIDAD_COMPRA,
         c.Name C_UNIDAD_COMPRA,
-        pr.CreateDate PR_FECHA_CREACION,
+        DATEADD(HOUR, -4, pr.CreateDate) PR_FECHA_CREACION,
         rd.FechaPublicacion RD_FECHA_PUBLICACION,
         rd.FechaFinRecepcionOfertas RD_FECHA_FIN_RECEPCION_OFERTAS,
         rd.FechaAperturaOfertas RD_FECHA_APERTURA_OFERTAS,
