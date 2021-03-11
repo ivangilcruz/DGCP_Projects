@@ -23,8 +23,8 @@ SELECT
         END TIPO_EXCEPCION,
         CASE          
             WHEN pr.[State] = 'Awarded' then 'Adjudicado'  
-            WHEN pr.[State] = 'Canceled' then 'Cancelado'     
-            WHEN pr.[State] = 'Closed' then 'Cerrada la recepción de ofertas'       
+            WHEN pr.[State] = 'Canceled' AND cn.UniqueIdentifier IS NOT NULL THEN 'Cancelado'     
+            --WHEN pr.[State] = 'Closed' then 'Cerrada la recepción de ofertas'       
             WHEN pr.[State] = 'ClosedForReplies' then 'Cerrada la recepción de ofertas'   
             --WHEN pr.[State] = 'InEdition' then 'En edición'         
             WHEN pr.[State] = 'NonAwarded' then 'Desierto'         
