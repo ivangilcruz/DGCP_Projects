@@ -91,6 +91,7 @@ SELECT
             WHEN pr.DefineLots IS NULL THEN 'No especificado'
             ELSE CAST(pr.DefineLots AS VARCHAR)  
         END PR_PROCESO_LOTIFICADO, 
+        bd.HasPlannedAcquisitions,
         CASE 
             WHEN cn.TypeOfContractCode = 'GoodsDominicana' THEN 'Bienes'
             WHEN cn.TypeOfContractCode = 'ServicesDominicana' THEN 'Servicios'
@@ -155,4 +156,6 @@ SELECT
     ON cn.RequestUniqueIdentifier=pr.[UniqueIdentifier]
     LEFT JOIN Company c
     ON pr.CreateCompanyCode=c.Code
+    LEFT JOIN BuyerDossier bd
+    ON pr.BuyerDossierUniqueIdentifier=bd.[UniqueIdentifier]
 where pr.ranking=1
