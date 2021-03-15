@@ -91,7 +91,7 @@ SELECT
             WHEN pr.DefineLots IS NULL THEN 'No especificado'
             ELSE CAST(pr.DefineLots AS VARCHAR)  
         END PR_PROCESO_LOTIFICADO, 
-        bd.HasPlannedAcquisitions,
+        bd.HasPlannedAcquisitions BD_ADQUISICION_PLANEADA,
         CASE 
             WHEN cn.TypeOfContractCode = 'GoodsDominicana' THEN 'Bienes'
             WHEN cn.TypeOfContractCode = 'ServicesDominicana' THEN 'Servicios'
@@ -106,7 +106,7 @@ SELECT
             WHEN cn.SubTypeOfContractCode = 'ChildServicesDominicana' THEN 'Servicios'
             WHEN cn.SubTypeOfContractCode = 'ConsultingDominicana' THEN 'Consultorías'
             WHEN cn.SubTypeOfContractCode = 'ConsultingQualityDominicana' THEN 'Consultoría basada en la calidad de los servicios'
-            ELSE cn.TypeOfContractCode
+            ELSE cn.SubTypeOfContractCode
         END CN_SUBOBJETO_PROCESO,
         cn.ContractDuration CN_DURACION_CONTRATO, 
         cn.NumberInvitedCompanies CN_NUMERO_PROVEEDORES_NOTIFICADOS,
