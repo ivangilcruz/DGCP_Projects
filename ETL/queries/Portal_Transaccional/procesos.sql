@@ -91,7 +91,12 @@ SELECT
             WHEN pr.DefineLots IS NULL THEN 'No especificado'
             ELSE CAST(pr.DefineLots AS VARCHAR)  
         END PR_PROCESO_LOTIFICADO, 
-        bd.HasPlannedAcquisitions BD_ADQUISICION_PLANEADA,
+        CASE 
+            WHEN bd.HasPlannedAcquisitions = 0 THEN 'No'
+            WHEN bd.HasPlannedAcquisitions = 1 THEN 'Si'
+            WHEN bd.HasPlannedAcquisitions IS NULL THEN 'No especificado'
+            ELSE CAST(bd.HasPlannedAcquisitions AS VARCHAR)  
+        END BD_ADQUISICION_PLANEADA, 
         CASE 
             WHEN cn.TypeOfContractCode = 'GoodsDominicana' THEN 'Bienes'
             WHEN cn.TypeOfContractCode = 'ServicesDominicana' THEN 'Servicios'
