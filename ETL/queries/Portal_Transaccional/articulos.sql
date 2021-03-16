@@ -57,7 +57,7 @@ SELECT
     END PR_ESTADO_PROCESO
     --,bil.Id as Id
     ,bil.CategoryCode as UNSPSC
-    ,SUBSTRING(bil.CategoryCode, 1, 4) + '0000' CLASE
+    ,SUBSTRING(bil.CategoryCode, 1, 6) + '00' CLASE
     --bil.*,
     --VCC.Description
     ,fechas.FechaPublicacion AS FECHA_PUBLICACION
