@@ -79,9 +79,9 @@ INNER JOIN BusinessItemLine bil WITH (NOLOCK)
     ON bi.Id=bil.BusinessItemLines
 INNER JOIN Category VCC WITH (NOLOCK)
     ON BIL.CategoryCode=VCC.Code
-LEFT JOIN Company c WITH (NOLOCK)
+INNER JOIN Company c WITH (NOLOCK)
     ON pr.CreateCompanyCode=c.Code
-LEFT JOIN (
+INNER JOIN (
         SELECT *
     FROM
     (
@@ -92,10 +92,10 @@ LEFT JOIN (
             ELSE 'No especificado'
         END Fecha,
         DATEADD(HOUR, -4, SelectedDateTime) SelectedDateTimeMinus4Hours
-        FROM [Portal].[dbo].[RequestDate]
+        FROM [Portal].[dbo].[RequestDate] WHERE Type = 0 AND DATEADD(HOUR, -4, SelectedDateTime) >= DATEADD(MONTH, -3, getdate())
     ) AS SourceTable PIVOT(MAX([SelectedDateTimeMinus4Hours]) FOR [Fecha] IN(
                                                                             [FechaPublicacion],
                                                                             [No especificado])) AS PivotTable
 ) fechas
 ON fechas.ProcedureRequestSchedule=pr.Id
-WHERE bil.AccountCode IS NOT NULL AND pr.ranking=1 AND fechas.FechaPublicacion >= DATEADD(MONTH, -3, getdate())
+WHERE bil.AccountCode IS NOT NULL AND pr.ranking=1
