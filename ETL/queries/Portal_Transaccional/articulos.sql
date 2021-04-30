@@ -1,6 +1,6 @@
 SELECT  
-    DISTINCT 
-    c.ExternalId C_CODIGO_UNIDAD_COMPRA
+    co.ExternalId CODIGO_UNIDAD_COMPRA
+    ,co.Name UNIDAD_COMPRA
     ,pr.Reference AS CODIGO_PROCESO
     ,CASE 
         WHEN pr.Reference LIKE '%-CD-%' THEN 'Compras por Debajo del Umbral'
@@ -41,61 +41,40 @@ SELECT
     ,CASE          
         WHEN pr.[State] = 'Awarded' then 'Proceso adjudicado y celebrado'  
         WHEN pr.[State] = 'Canceled' AND cn.UniqueIdentifier IS NOT NULL THEN 'Cancelado'     
-        WHEN pr.[State] = 'Closed' then 'Aun no publicado'       
+        WHEN pr.[State] = 'Closed' then 'Aun no publicado: Closed'       
         WHEN pr.[State] = 'ClosedForReplies' then 'Proceso con etapa cerrada'   
         WHEN pr.[State] = 'InEdition' then 'Aun no publicado'         
         WHEN pr.[State] = 'NonAwarded' then 'Proceso desierto'         
         WHEN pr.[State] = 'Opened' then 'Sobres abiertos ó aperturados'     
         WHEN pr.[State] = 'Published' then 'Proceso publicado'         
         WHEN pr.[State] = 'RepliesOpenningStarted' then 'Sobres están abriéndose'  
-        WHEN pr.[State] = 'UnderApproval' then 'Aun no publicado'         
-        WHEN pr.[State] = 'WaitingForPublicationDate' then 'Aun no publicado'
-        WHEN pr.[State] = 'Rejected' then 'Aun no publicado'
-        WHEN pr.[State] = 'Approved' then 'Aun no publicado'
-        WHEN pr.[State] = 'Canceled' then 'Aun no publicado'
+        WHEN pr.[State] = 'UnderApproval' then 'Aun no publicado: UnderApproval'         
+        WHEN pr.[State] = 'WaitingForPublicationDate' then 'Aun no publicado: WaitingForPublicationDate'
+        WHEN pr.[State] = 'Rejected' then 'Aun no publicado: Rejected'
+        WHEN pr.[State] = 'Approved' then 'Aun no publicado: Approved'
+        WHEN pr.[State] = 'Canceled' then 'Aun no publicado: Canceled'
         ELSE pr.[State]         
-    END PR_ESTADO_PROCESO
-    --,bil.Id as Id
-    ,bil.CategoryCode as UNSPSC
-    ,SUBSTRING(bil.CategoryCode, 1, 6) + '00' CLASE
-    --bil.*,
-    --VCC.Description
-    ,fechas.FechaPublicacion AS FECHA_PUBLICACION
-FROM    (
-            SELECT *, ROW_NUMBER() OVER (PARTITION BY Reference ORDER BY CreateDate DESC) AS ranking
-            FROM ProcedureRequest
-        ) pr 
-INNER JOIN ContractNotice cn WITH (NOLOCK)
-    ON cn.RequestUniqueIdentifier=pr.UniqueIdentifier
-INNER JOIN RequestData rd WITH (NOLOCK)
-    ON rd.ProcedureRequestData=pr.Id
-INNER JOIN BusinessItemOutlineContainer biolc WITH (NOLOCK)
-    ON rd.Id=biolc.RequestDataDataSheetDivisions
-INNER JOIN BusinessItemOutline biol WITH (NOLOCK)
-    ON biolc.Id=biol.BusinessItemOutlineContainerOutlines
-INNER JOIN BusinessItem bi WITH (NOLOCK)
-    ON biol.id=bi.BusinessItemOutlineBusinessItem
-INNER JOIN BusinessItemLine bil WITH (NOLOCK)
-    ON bi.Id=bil.BusinessItemLines
-INNER JOIN Category VCC WITH (NOLOCK)
-    ON BIL.CategoryCode=VCC.Code
-INNER JOIN Company c WITH (NOLOCK)
-    ON pr.CreateCompanyCode=c.Code
-INNER JOIN (
-        SELECT *
-    FROM
-    (
-        SELECT
-        ProcedureRequestSchedule,
-        CASE Type
-            WHEN 0 THEN 'FechaPublicacion'
-            ELSE 'No especificado'
-        END Fecha,
-        DATEADD(HOUR, -4, SelectedDateTime) SelectedDateTimeMinus4Hours
-        FROM [Portal].[dbo].[RequestDate] WHERE Type = 0 AND DATEADD(HOUR, -4, SelectedDateTime) >= DATEADD(MONTH, -3, getdate())
-    ) AS SourceTable PIVOT(MAX([SelectedDateTimeMinus4Hours]) FOR [Fecha] IN(
-                                                                            [FechaPublicacion],
-                                                                            [No especificado])) AS PivotTable
-) fechas
-ON fechas.ProcedureRequestSchedule=pr.Id
-WHERE bil.AccountCode IS NOT NULL AND pr.ranking=1
+    END ESTADO_PROCESO
+    ,DATEADD(HOUR, -4, pd.SelectedDateTime) FECHA_PUBLICACION
+    ,bil.Id ID_ARTICULO
+    ,SUBSTRING(bil.CategoryCode, 1, 6) + '00' CLASE_UNSPSC
+    ,cat_l3.Description
+    ,bil.CategoryCode  SUBCLASE_UNSPSC
+    ,cat_l4.Description DESCRIPCION_ARTICULO
+    ,isnull(billv.[Value], bilv.[Value]) DESCRIPCION_USUARIO
+FROM 
+    (SELECT *, ROW_NUMBER() OVER (PARTITION BY Reference ORDER BY CreateDate DESC) AS rn FROM [DGCP-SRV-SQDHW].Portal.dbo.ProcedureRequest WITH (NOLOCK)) pr INNER JOIN
+    (SELECT * FROM [DGCP-SRV-SQDHW].Portal.dbo.RequestDate WITH (NOLOCK) WHERE DATEADD(HOUR, -4, SelectedDateTime) >= DATEADD(MONTH, -3, getdate()))  pd ON pd.ProcedureRequestSchedule=pr.Id AND pd.Type=0 AND pd.SelectedDateTime IS NOT NULL AND pd.RequestUniqueName NOT LIKE '%Draft%' LEFT JOIN
+    --(SELECT * FROM [DGCP-SRV-SQDHW].Portal.dbo.RequestDate WITH (NOLOCK)) pd ON pd.ProcedureRequestSchedule=pr.Id AND pd.Type=0 AND pd.SelectedDateTime IS NOT NULL AND pd.RequestUniqueName NOT LIKE '%Draft%' LEFT JOIN
+    [DGCP-SRV-SQDHW].Portal.dbo.Company co WITH (NOLOCK) ON co.Code=pr.CreateCompanyCode LEFT JOIN
+    [DGCP-SRV-SQDHW].Portal.dbo.ContractNotice cn WITH (NOLOCK) ON cn.RequestUniqueIdentifier=pr.[UniqueIdentifier] INNER JOIN
+    [DGCP-SRV-SQDHW].Portal.dbo.RequestData rd WITH (NOLOCK) ON rd.ProcedureRequestData=pr.Id INNER JOIN
+    [DGCP-SRV-SQDHW].Portal.dbo.BusinessItemOutlineContainer biolc WITH (NOLOCK) ON rd.Id=biolc.RequestDataDataSheetDivisions INNER JOIN
+    [DGCP-SRV-SQDHW].Portal.dbo.BusinessItemOutline biol WITH (NOLOCK) ON biolc.Id=biol.BusinessItemOutlineContainerOutlines INNER JOIN
+    [DGCP-SRV-SQDHW].Portal.dbo.BusinessItem bi WITH (NOLOCK) ON biol.id=bi.BusinessItemOutlineBusinessItem INNER JOIN
+    [DGCP-SRV-SQDHW].Portal.dbo.BusinessItemLine bil WITH (NOLOCK) ON bi.Id=bil.BusinessItemLines AND bil.AccountCode IS NOT NULL LEFT JOIN
+    [DGCP-SRV-SQDHW].Portal.dbo.BusinessItemLineValue bilv WITH (NOLOCK) ON bilv.BusinessItemLineValues=bil.Id AND bilv.[Key]='Description' LEFT JOIN
+    [DGCP-SRV-SQDHW].Portal.dbo.BusinessItemLineLargeValue billv WITH (NOLOCK) ON billv.ParentBusinessItemLineValues=bil.Id AND billv.ParentKey='Description' INNER JOIN
+    [DGCP-SRV-SQDHW].Portal.dbo.Category cat_l4 WITH (NOLOCK) ON bil.CategoryCode=cat_l4.Code INNER JOIN
+    [DGCP-SRV-SQDHW].Portal.dbo.Category cat_l3 WITH (NOLOCK) ON cat_l3.Code=SUBSTRING(bil.CategoryCode, 1, 6) + '00'
+WHERE pr.rn=1
