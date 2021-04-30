@@ -55,6 +55,7 @@ SELECT
         WHEN pr.[State] = 'Canceled' then 'Aun no publicado: Canceled'
         ELSE pr.[State]         
     END ESTADO_PROCESO
+    ,pr.Name CARATULA
     ,DATEADD(HOUR, -4, pd.SelectedDateTime) FECHA_PUBLICACION
     ,bil.Id ID_ARTICULO
     ,SUBSTRING(bil.CategoryCode, 1, 6) + '00' CLASE_UNSPSC
