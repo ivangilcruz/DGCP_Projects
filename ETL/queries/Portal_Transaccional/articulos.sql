@@ -55,6 +55,46 @@ SELECT
         WHEN pr.[State] = 'Canceled' then 'Aun no publicado: Canceled'
         ELSE pr.[State]         
     END ESTADO_PROCESO
+    ,CASE 
+        WHEN pr.DefineLots = 0 THEN 'No'
+        WHEN pr.DefineLots = 1 THEN 'Si'
+        WHEN pr.DefineLots IS NULL THEN 'No especificado'
+        ELSE CAST(pr.DefineLots AS VARCHAR)  
+    END PROCESO_LOTIFICADO
+    ,CASE 
+        WHEN bd.HasPlannedAcquisitions = 0 THEN 'No'
+        WHEN bd.HasPlannedAcquisitions = 1 THEN 'Si'
+        WHEN bd.HasPlannedAcquisitions IS NULL THEN 'No especificado'
+        ELSE CAST(bd.HasPlannedAcquisitions AS VARCHAR)  
+    END ADQUISICION_PLANEADA
+    ,CASE 
+        WHEN pr.LimitRepliesToSmallCompanies = 0 THEN 'No'
+        WHEN pr.LimitRepliesToSmallCompanies = 1 THEN 'Si'
+        WHEN pr.LimitRepliesToSmallCompanies IS NULL THEN 'No especificado'
+        ELSE CAST(pr.LimitRepliesToSmallCompanies AS VARCHAR)
+    END DIRIGIDO_MIPYMES
+    ,CASE 
+        WHEN pr.LimitRepliesToSmallFemaleCompanies = 0 THEN 'No'
+        WHEN pr.LimitRepliesToSmallFemaleCompanies = 1 THEN 'Si'
+        WHEN pr.LimitRepliesToSmallFemaleCompanies IS NULL THEN 'No especificado'
+        ELSE CAST(pr.LimitRepliesToSmallFemaleCompanies AS VARCHAR)  
+    END DIRIGIDO_MIPYMES_MUJERES
+    ,CASE 
+        WHEN cn.TypeOfContractCode = 'GoodsDominicana' THEN 'Bienes'
+        WHEN cn.TypeOfContractCode = 'ServicesDominicana' THEN 'Servicios'
+        WHEN cn.TypeOfContractCode = 'ConstructionDominicana' THEN 'Obras'
+        WHEN cn.TypeOfContractCode = 'ConcessionDominicana' THEN 'Concesiones'
+        ELSE cn.TypeOfContractCode
+    END OBJETO_PROCESO
+    ,CASE
+        WHEN cn.SubTypeOfContractCode = 'GoodsDominicana' THEN 'Bienes' 
+        WHEN cn.SubTypeOfContractCode = 'ConstructionDominicana' THEN 'Obras'
+        WHEN cn.SubTypeOfContractCode = 'ConcessionDominicana' THEN 'Concesiones'
+        WHEN cn.SubTypeOfContractCode = 'ChildServicesDominicana' THEN 'Servicios'
+        WHEN cn.SubTypeOfContractCode = 'ConsultingDominicana' THEN 'Consultorías'
+        WHEN cn.SubTypeOfContractCode = 'ConsultingQualityDominicana' THEN 'Consultoría basada en la calidad de los servicios'
+        ELSE cn.SubTypeOfContractCode
+    END SUBOBJETO_PROCESO
     ,pr.Name CARATULA
     ,DATEADD(HOUR, -4, pd.SelectedDateTime) FECHA_PUBLICACION
     ,bil.Id ID_ARTICULO
@@ -68,6 +108,7 @@ FROM
     (SELECT * FROM [DGCP-SRV-SQDHW].Portal.dbo.RequestDate WITH (NOLOCK) WHERE DATEADD(HOUR, -4, SelectedDateTime) >= DATEADD(MONTH, -3, getdate()))  pd ON pd.ProcedureRequestSchedule=pr.Id AND pd.Type=0 AND pd.SelectedDateTime IS NOT NULL AND pd.RequestUniqueName NOT LIKE '%Draft%' LEFT JOIN
     --(SELECT * FROM [DGCP-SRV-SQDHW].Portal.dbo.RequestDate WITH (NOLOCK)) pd ON pd.ProcedureRequestSchedule=pr.Id AND pd.Type=0 AND pd.SelectedDateTime IS NOT NULL AND pd.RequestUniqueName NOT LIKE '%Draft%' LEFT JOIN
     [DGCP-SRV-SQDHW].Portal.dbo.Company co WITH (NOLOCK) ON co.Code=pr.CreateCompanyCode LEFT JOIN
+    [DGCP-SRV-SQDHW].Portal.dbo.BuyerDossier bd WITH (NOLOCK) ON pr.BuyerDossierUniqueIdentifier=bd.[UniqueIdentifier] LEFT JOIN
     [DGCP-SRV-SQDHW].Portal.dbo.ContractNotice cn WITH (NOLOCK) ON cn.RequestUniqueIdentifier=pr.[UniqueIdentifier] INNER JOIN
     [DGCP-SRV-SQDHW].Portal.dbo.RequestData rd WITH (NOLOCK) ON rd.ProcedureRequestData=pr.Id INNER JOIN
     [DGCP-SRV-SQDHW].Portal.dbo.BusinessItemOutlineContainer biolc WITH (NOLOCK) ON rd.Id=biolc.RequestDataDataSheetDivisions INNER JOIN
